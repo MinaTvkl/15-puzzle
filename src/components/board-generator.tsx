@@ -7,15 +7,24 @@ import { TILE_COUNT, GRID_DIMENSIONS } from '../constants';
 type tileProps = {
   tileValue: number
   color: string
+  index: number
+  coordinates: { x: number, y: number }
   correct: boolean
 }
 
 //background-color: ${props => props.tileValue ? "palevioletred" : "white"};
+//col* width
+//
+
 export const Tile = styled.div<tileProps>`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: .5rem;
+  position: absolute;
+  width: ${500 / GRID_DIMENSIONS}px;
+  height: ${500 / GRID_DIMENSIONS}px;
+  translate :${props => 500 / GRID_DIMENSIONS * ((props.index%GRID_DIMENSIONS)+1)}px ${props => 500 / GRID_DIMENSIONS * (Math.floor((props.index)/GRID_DIMENSIONS)+1)}px;
+  
+  background-image: url(https://images.squarespace-cdn.com/content/v1/51b3dc8ee4b051b96ceb10de/1478637736504-K2S5E4GPWXMIWC42X8B3/image-asset.jpeg);
+  background-size: ${500 * 1.25}px;
+  background-position: ${props => (100 / (GRID_DIMENSIONS - 1) * (props.tileValue % GRID_DIMENSIONS))}% ${props => (100 / (GRID_DIMENSIONS - 1) * Math.floor(props.tileValue / GRID_DIMENSIONS))}%;
   background-color: ${props => {
     if (props.correct) {
       return "lightgreen"
@@ -23,22 +32,16 @@ export const Tile = styled.div<tileProps>`
     if (!props.tileValue) {
       return "black"
     }
-    else{
+    else {
       return "pink"
     }
   }};
 `;
 
 export const Grid = styled.div`
-  height: 40vw;
-  width: 40vw;
-  min-width: 300px;
-  min-height: 300px;
-  max-width: 700px;
-  max-height: 700px;
-  display: grid;
-  grid-template: repeat(${GRID_DIMENSIONS}, 1fr) / repeat(${GRID_DIMENSIONS}, 1fr);
-  grid-gap: 10px;
+  height: 500px;
+  width: 500px;
+
 `;
 
 export const ShuffleButton = styled.button`
@@ -56,6 +59,9 @@ function Board() {
 
   const handleTileChange = (tileValue: number, clickedIndex: number) => {
     setColor("pink")
+    console.log("x position", (100 / (GRID_DIMENSIONS - 1) * (clickedIndex % GRID_DIMENSIONS)))
+    
+    console.log("y position", (100 / (GRID_DIMENSIONS - 1) * Math.floor(clickedIndex / GRID_DIMENSIONS)))
     //first check if allowed move 
     //then change board w helper functions (find direction, which tiles should move where (which clickedIndex change), )
     //find the location of 0 the first time and after that the clicked is the new zero
@@ -68,6 +74,9 @@ function Board() {
     }
     const emptyCoord = indexToCoordinates(emptyTileIndex)
     const clickedCoord = indexToCoordinates(clickedIndex)
+    console.log("x translation", 500 / GRID_DIMENSIONS * (clickedIndex % GRID_DIMENSIONS + 1))
+    
+    console.log("y translation", 500 / GRID_DIMENSIONS * ( Math.floor(clickedIndex / GRID_DIMENSIONS)  + 1))
     const allowedMove = isMoveAllowed(clickedCoord, emptyCoord)
     const axis = moveAxis(clickedCoord, emptyCoord)
     if (!allowedMove) {
@@ -94,6 +103,8 @@ function Board() {
           key={i}
           tileValue={arr[i]}
           color={color}
+          index={i}
+          coordinates={indexToCoordinates(arr[i])}
           correct={i + 1 === arr[i]}
           onClick={(e) => handleTileChange(arr[i], i)}> {arr[i]}
         </Tile>)
