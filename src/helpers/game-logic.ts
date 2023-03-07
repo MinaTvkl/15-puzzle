@@ -4,8 +4,8 @@ type Coordinate = { x: number, y: number };
 type Axis = { horizontal: boolean, vertical: boolean }
 
 export function indexToCoordinates(position: number): Coordinate {
-    let y = Math.floor(position / GRID_DIMENSIONS)
     let x = position % GRID_DIMENSIONS
+    let y = Math.floor(position / GRID_DIMENSIONS)
     return { x, y }
 }
 
