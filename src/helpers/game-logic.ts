@@ -48,7 +48,7 @@ export function tileMover(emptyTileIndex: number, arr: number[], distance: numbe
     //swaps the zero to the next position & changes the stored position of 0
     if (axis.vertical) {
         for (let i = 1; i <= Math.abs(distance); i++) {
-            [arr[emptyTileIndex], arr[emptyTileIndex + GRID_DIMENSIONS * direction]] = [arr[emptyTileIndex + 4 * direction], arr[emptyTileIndex]]
+            [arr[emptyTileIndex], arr[emptyTileIndex + GRID_DIMENSIONS * direction]] = [arr[emptyTileIndex + GRID_DIMENSIONS * direction], arr[emptyTileIndex]]
             emptyTileIndex += GRID_DIMENSIONS * direction
         }
     }
