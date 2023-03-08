@@ -1,128 +1,153 @@
 
 import { useState, useEffect, useRef } from 'react';
-import styled from "styled-components"
-import { Motion, spring } from "react-motion";
-import { indexToCoordinates, isMoveAllowed, moveAxis, moveDistance, tileMover } from '../helpers/game-logic';
-import { TILE_COUNT, GRID_DIMENSIONS, ROWS, COLUMNS } from '../constants';
+import ConfettiExplosion from 'react-confetti-explosion';
+import styled from 'styled-components'
+import { device } from '../device';
+import { indexToCoordinates, isMoveAllowed, moveAxis, moveDistance, tileMover, shuffleArray, isSolvable, isSolved } from '../helpers/game-logic';
+import { TILE_COUNT, ROWS, COLUMNS } from '../constants';
 import { Tile } from './tile';
+//use as test image for nxn puzzle
 import ET from './../image-asset.jpeg'
 
+type StartButtonType = {
+  gameStarted: boolean
+}
+
 export const Grid = styled.div`
+  position: relative;
   margin-top: 10%;
   margin-left: auto;
   margin-right: auto;
-  height: ${10*ROWS}vw;
-  width: ${10*COLUMNS}vw;
+  height: ${10 * ROWS}vh;
+  width: ${10 * COLUMNS}vh;
   background-color: #000000;
-  border-radius: 25px;
-`;
+  border-radius: 15px;
+  text-align: center;
 
-export const ShuffleButton = styled.button`
+  @media ${device.tablet} { 
+  height: ${7 * ROWS}vw;
+  width: ${7 * COLUMNS}vw;
+  }
+`
+
+export const StartButton = styled.button<StartButtonType>`
+  position: absolute;
+  margin: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 15px 25px;
+  font-size: 24px;
+  text-align: center;
+  cursor: pointer;
+  outline: none;
+  color: #000000;
+  background-color: #5852ff;
+  border: none;
+  border-radius: 10px;
+  visibility: ${props => props.gameStarted ? 'hidden' : 'visible'};
+}
+  :hover {background-color: #3e38ff}
+
+  :active {
+    background-color: #3e8e41;
+  }
+`
+export const ButtonGroup = styled.div`
+  display: flex;
+  justify-content: center;
+  padding: 40px;
 `
 
 function Board() {
-  const array = Array.from({ length: TILE_COUNT }, (_, index) => index + 1)
-  array.sort(() => Math.random() - 0.5)
+  const array = Array.from({ length: TILE_COUNT }, (_, index) => index + 1).sort(() => Math.random() - 0.5)
 
   const [boardArray, setBoardArray] = useState(array)
   const [emptyTileIndex, setEmptyTileIndex] = useState(array.indexOf(TILE_COUNT))
   const [image, setImage] = useState<FileList | null>()
-  const [imageURL, setImageURL] = useState<string>("")
+  const [imageURL, setImageURL] = useState<string | undefined>()
+  const [gameStarted, setGameStarted] = useState(true)
+  const [gameSolved, setGameSolved] = useState(false)
 
-function usePrevious<T>(value: T): T | undefined {
-  const ref = useRef<T>();
+  const shuffleBoard = () => {
+    const shuffled = shuffleArray(boardArray)
+    setBoardArray(shuffled)
+    setEmptyTileIndex(shuffled.indexOf(TILE_COUNT))
+  }
+
   useEffect(() => {
-    ref.current = value;
-  }, [value]);
-  return ref.current;
-}
-
-
-  useEffect(()=>{
-      if (!image) return
-      console.log(image)
-      const newImageURL = URL.createObjectURL(image[0])
-      setImageURL(newImageURL)
-      console.log(imageURL)
-
-
+    if (!image) return
+    const newImageURL = URL.createObjectURL(image[0])
+    setImageURL(newImageURL)
   }, [image])
 
+  const handleTileChange = (clickedTileIndex: number) => {
+    if (emptyTileIndex === clickedTileIndex) return
+    const emptyTileCoord = indexToCoordinates(emptyTileIndex)
+    const clickedTileCoord = indexToCoordinates(clickedTileIndex)
 
-  const handleTileChange = (clickedIndex: number) => {
-
-    console.log("x position", (100 / (GRID_DIMENSIONS - 1) * (clickedIndex % GRID_DIMENSIONS)))
-
-    console.log("y position", (100 / (GRID_DIMENSIONS - 1) * Math.floor(clickedIndex / GRID_DIMENSIONS)))
-    //first check if allowed move 
-    //then change board w helper functions (find direction, which tiles should move where (which clickedIndex change), )
-    //find the location of 0 the first time and after that the clicked is the new zero
-    console.log("this is coord for 0", indexToCoordinates(emptyTileIndex))
-    console.log("this is coord for clicked", indexToCoordinates(clickedIndex))
-    console.log(emptyTileIndex, clickedIndex)
-    if (emptyTileIndex === clickedIndex) return
-
-    const emptyCoord = indexToCoordinates(emptyTileIndex)
-    const clickedCoord = indexToCoordinates(clickedIndex)
-    console.log("x translation", 40 / GRID_DIMENSIONS * (clickedIndex % GRID_DIMENSIONS + 1))
-    console.log("y translation", 40 / GRID_DIMENSIONS * (Math.floor(clickedIndex / GRID_DIMENSIONS) + 1))
-
-    const allowedMove = isMoveAllowed(clickedCoord, emptyCoord)
+    const allowedMove = isMoveAllowed(clickedTileCoord, emptyTileCoord)
     if (!allowedMove) return
-    const axis = moveAxis(clickedCoord, emptyCoord)
-    
-    const distance = moveDistance(clickedCoord, emptyCoord, axis)
-    const arr = tileMover(emptyTileIndex, boardArray, distance, axis)
-    setEmptyTileIndex(clickedIndex)
-    setBoardArray(arr)
+
+    const axis = moveAxis(clickedTileCoord, emptyTileCoord)
+    const distance = moveDistance(clickedTileCoord, emptyTileCoord, axis)
+
+    const newBoardArray = tileMover(emptyTileIndex, boardArray, distance, axis)
+    setEmptyTileIndex(clickedTileIndex)
+    setBoardArray(newBoardArray)
+    if (isSolved(boardArray)) {
+      setGameSolved(true)
+      setGameStarted(false)
+    }
   }
 
-  const shuffleTiles = () => {
-    setBoardArray(boardArray.sort(() => Math.random() - 0.5))
-    setEmptyTileIndex(boardArray.indexOf(TILE_COUNT))
+  const handleGameStart = () => {
+    setGameStarted(true)
+    setGameSolved(false)
+    shuffleBoard()
   }
 
-  console.log(usePrevious(emptyTileIndex))
-  console.log(emptyTileIndex)
-  const tileRender = (arr: number[]) => {
+  const tileRender = () => {
     let tileList = []
-    for (let i = 0; i < arr.length; i++) {
+    for (let i = 0; i < boardArray.length; i++) {
       tileList.push(
-      <Motion key={i} style={{
-        translateX: spring(10 * ((i%COLUMNS))),
-        translateY: spring(10 * (Math.floor(i/COLUMNS)))
-      }}>
-        {({ translateX, translateY }) => (
-        <Tile style={{
-          transform: `translate3d(${translateX}vw, ${translateY}vw, 0)`}}
+        <Tile
           key={i}
-          tileValue={arr[i]}
+          tileValue={boardArray[i]}
           index={i}
-          coordinates={indexToCoordinates(arr[i])}
-          correct={i + 1 === arr[i]}
+          coordinates={indexToCoordinates(boardArray[i])}
+          correct={i + 1 === boardArray[i]}
           image={imageURL}
-          translateX = {translateX}
-          translateY = {translateY}
+          gameStarted={gameStarted}
           onClick={() => handleTileChange(i)}>
-          {arr[i]}
+          {boardArray[i]}
         </Tile>
-        )}
-        </Motion>)
+      )
     }
     return tileList
   }
 
   return (
-    <div className="board">
+    <div className='board'>
       <Grid>
-        {tileRender(boardArray)}
+        {tileRender()}
+        <StartButton gameStarted={gameStarted} onClick={() => handleGameStart()}>Start game</StartButton>
+        {gameSolved && <ConfettiExplosion
+          colors={['#ffd478', '#ff59c2', '#3f51b5']}
+          duration={3000}
+          force={0.6}
+          particleCount={80}
+          width={1600}
+          particleSize={10}
+        />}
       </Grid>
-      <ShuffleButton onClick={() => shuffleTiles()}> Shuffle </ShuffleButton>
-      <input type="file" accept="image/*" onChange={(event)=>{setImage(event.target.files)} }></input>
-      <button onClick={()=>setImageURL(ET)}>test image for NxN board</button>
-      <p>Note that your image dimensions must be {ROWS}x{COLUMNS} to match the puzzle size</p>
+      <ButtonGroup>
+        <button onClick={() => shuffleBoard()}> Shuffle </button>
+        <input type='file' accept='image/*' onChange={(event) => { setImage(event.target.files) }} />
+      </ButtonGroup>
+      <p id='info-txt' >Upload an image to customise your puzzle, note that your image dimensions must be {ROWS}x{COLUMNS} to match the puzzle size</p>
     </div>
-  );
+  )
 }
 
 export default Board;

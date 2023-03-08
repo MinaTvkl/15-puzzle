@@ -1,5 +1,4 @@
-export const ROWS = 4
-export const COLUMNS = 4
+export const ROWS = 6
+export const COLUMNS = 6
 export const TILE_COUNT = ROWS*COLUMNS;
-export const GRID_DIMENSIONS = Math.sqrt(TILE_COUNT);
-//export const BOARD_SIZE = 320;
+//export const GRID_DIMENSIONS = Math.sqrt(TILE_COUNT);

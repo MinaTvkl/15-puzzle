@@ -1,44 +1,50 @@
-import styled from "styled-components"
-import { TILE_COUNT, ROWS, COLUMNS } from '../constants';
-import ET from './../image-asset.jpeg'
-import './../App.css';
+import styled from 'styled-components'
+import { TILE_COUNT, ROWS, COLUMNS } from '../constants'
+import './../App.css'
+import { device } from '../device'
 
 type TileProps = {
     tileValue: number
     index: number
     coordinates: { x: number, y: number }
     correct: boolean
-    image: string
-    translateX: number
-    translateY: number
-  }
-  
-  export const Tile = styled.div<TileProps>`
+    image: string | undefined
+    gameStarted: boolean
+}
+
+export const Tile = styled.div<TileProps>`
     position: absolute;
     display: flex;
     align-items: center;
     justify-content: center;
-  
-    width: 10vw;
-    height: 10vw;
-    translateX: ${props => props.translateX}vw;
-    translateY: ${props => props.translateY}vw;
-    
-    background-image: url("${props => props.image}");
-    background-size: ${10*ROWS}vw ${10*COLUMNS};
-    background-position: ${props => (100 / (ROWS - 1) * (props.tileValue % ROWS))}% ${props => (100 / (COLUMNS - 1) * Math.floor(props.tileValue / COLUMNS))}%;
+    width: 10vh;
+    height: 10vh;
+    translate :${props => 10 * (props.index%COLUMNS)}vh ${props => 10 * (Math.floor((props.index)/COLUMNS))}vh;
+    background-image: url('${props => props.image}');
+    background-size: ${10 * ROWS}vh ${10 * COLUMNS}vh;
+    background-position: ${props => (100 / (ROWS - 1) * ((props.tileValue-1) % ROWS))}% ${props => (100 / (COLUMNS - 1 ) * Math.floor((props.tileValue-1) / COLUMNS))}%;
     background-color: ${props => {
         if (props.correct) {
-          return "#73b09e"
+            return '#73b09e'
         }
         else {
-          return "#E2D1F9"
+            return '#E2D1F9'
         }
-      }};
+    }};
     animation: blink-animation ${Math.random}s 1;
     box-sizing: border-box;
-    border-radius: 25px;
+    border-radius: 15px;
     border: 2px solid #000000;
-    visibility: ${props => props.tileValue !== TILE_COUNT ? 'visible' : 'hidden'} ;
-  `;
-  
+    font-size: 20px;
+    visibility: ${props => props.tileValue !== TILE_COUNT ? 'visible' : 'hidden'};
+    opacity: ${props => props.gameStarted ? '1' : 0.6};
+    
+    @media ${device.tablet} { 
+        width: 7vw;
+        height: 7vw;
+        translate :${props => 7 * (props.index%COLUMNS)}vw ${props => 7 * (Math.floor((props.index)/COLUMNS))}vw;
+        background-image: url('${props => props.image}');
+        background-size: ${7 * ROWS}vw ${7 * COLUMNS}vw;
+        font-size: 2vw;
+    }
+    `
