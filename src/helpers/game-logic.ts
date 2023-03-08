@@ -1,11 +1,11 @@
-import { GRID_DIMENSIONS } from "../constants";
+import { COLUMNS } from "../constants";
 
 type Coordinate = { x: number, y: number };
 type Axis = { horizontal: boolean, vertical: boolean }
 
 export function indexToCoordinates(position: number): Coordinate {
-    let x = position % GRID_DIMENSIONS
-    let y = Math.floor(position / GRID_DIMENSIONS)
+    let x = position % COLUMNS
+    let y = Math.floor(position / COLUMNS)
     return { x, y }
 }
 
@@ -48,8 +48,8 @@ export function tileMover(emptyTileIndex: number, arr: number[], distance: numbe
     //swaps the zero to the next position & changes the stored position of 0
     if (axis.vertical) {
         for (let i = 1; i <= Math.abs(distance); i++) {
-            [arr[emptyTileIndex], arr[emptyTileIndex + GRID_DIMENSIONS * direction]] = [arr[emptyTileIndex + GRID_DIMENSIONS * direction], arr[emptyTileIndex]]
-            emptyTileIndex += GRID_DIMENSIONS * direction
+            [arr[emptyTileIndex], arr[emptyTileIndex + COLUMNS * direction]] = [arr[emptyTileIndex + COLUMNS * direction], arr[emptyTileIndex]]
+            emptyTileIndex += COLUMNS * direction
         }
     }
     if (axis.horizontal) {

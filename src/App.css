@@ -1,5 +1,13 @@
 .App {
   text-align: center;
+  font-size: 4vw;
+}
+p{
+  font-size: 2vw;
+}
+body{
+  
+  background-color: #8AAAE5;
 }
 
 .App-logo {
@@ -34,5 +42,18 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+
+
+@keyframes blink-animation {
+  0% {
+    opacity: 0;
+  }
+
+
+  100% {
+    opacity: 1;
   }
 }
