@@ -4,9 +4,10 @@
   font-family: 'Open Sans', sans-serif;
   text-align: center;
   font-size: 4vw;
-  display: flex;
   align-items: center;
 }
+
+
 
 #info-txt{
   font-size: 20px;
@@ -14,7 +15,7 @@
 }
 
 body{
-  background-color: #4e70af;
+  background-color: #af884e;
 }
 
 @keyframes blink-animation {
@@ -41,8 +42,4 @@ button, input::file-selector-button {
 button::hover{
   background-color: #4c91af; /* Green */
   color: white;
-}
-
-h1{
-  margin: 2 3 4 5;
 }

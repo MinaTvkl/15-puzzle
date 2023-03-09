@@ -17,11 +17,11 @@ export const Tile = styled.div<TileProps>`
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 10vh;
-    height: 10vh;
-    translate :${props => 10 * (props.index%COLUMNS)}vh ${props => 10 * (Math.floor((props.index)/COLUMNS))}vh;
+    width: 8vh;
+    height: 8vh;
+    translate :${props => 8 * (props.index%COLUMNS)}vh ${props => 8 * (Math.floor((props.index)/COLUMNS))}vh;
     background-image: url('${props => props.image}');
-    background-size: ${10 * ROWS}vh ${10 * COLUMNS}vh;
+    background-size: ${8 * ROWS}vh ${8 * COLUMNS}vh;
     background-position: ${props => (100 / (ROWS - 1) * ((props.tileValue-1) % ROWS))}% ${props => (100 / (COLUMNS - 1 ) * Math.floor((props.tileValue-1) / COLUMNS))}%;
     background-color: ${props => {
         if (props.correct) {

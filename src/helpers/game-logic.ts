@@ -67,11 +67,8 @@ export function isSolvable(boardArray: number[]): boolean {
                 count += 1
             }
         }
-        console.log(boardArray)
     }
-    console.log('this is count', count)
-    console.log(count % 2 == 0)
-    return count % 2 == 0
+    return count % 2 === 0
 }
 
 export function isSolved(boardArray: number[]): boolean {
