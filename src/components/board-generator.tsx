@@ -1,127 +1,173 @@
 
-import React, { FunctionComponent, useState, useRef, useEffect } from 'react';
-import styled from "styled-components"
-import { indexToCoordinates, isMoveAllowed, moveAxis, moveDistance, tileMover } from '../helpers/game-logic';
-import { TILE_COUNT, GRID_DIMENSIONS } from '../constants';
+import { useState, useEffect } from 'react';
+import ConfettiExplosion from 'react-confetti-explosion';
+import styled from 'styled-components'
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import PhotoCamera from '@mui/icons-material/PhotoCamera';
+import Stack from '@mui/material/Stack';
+import { device } from '../device';
+import { indexToCoordinates, isMoveAllowed, moveAxis, moveDistance, tileMover, shuffleArray, isSolvable, isSolved } from '../helpers/game-logic';
+import { TILE_COUNT, ROWS, COLUMNS } from '../constants';
+import { Tile } from './tile';
+//use as test image for nxn puzzle
 import ET from './../image-asset.jpeg'
 
-type tileProps = {
-  tileValue: number
-  color: string
-  index: number
-  coordinates: { x: number, y: number }
-  correct: boolean
+
+type StartButtonType = {
+  gameStarted: boolean
 }
 
-export const Tile = styled.div<tileProps>`
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: ${40 / GRID_DIMENSIONS}vw;
-  height: ${40 / GRID_DIMENSIONS}vw;
-  translate :${props => 40 / GRID_DIMENSIONS * ((props.index%GRID_DIMENSIONS))}vw ${props => 40 / GRID_DIMENSIONS * (Math.floor((props.index)/GRID_DIMENSIONS))}vw;
-  background-image: url("${ET}");
-  background-size: 40vw;
-  background-position: ${props => (100 / (GRID_DIMENSIONS - 1) * (props.tileValue % GRID_DIMENSIONS))}% ${props => (100 / (GRID_DIMENSIONS - 1) * Math.floor(props.tileValue / GRID_DIMENSIONS))}%;
-  background-color: ${props => {
-    if (props.correct) {
-      return "lightgreen"
-    }
-    else {
-      return "pink"
-    }
-  }};
-  visibility: ${props => props.tileValue ? 'visible' : 'hidden'} ;
-`;
+type WinnerMessageType = {
+  gameSolved: boolean
+}
 
 export const Grid = styled.div`
-  margin-top: 10%;
+  position: relative;
   margin-left: auto;
   margin-right: auto;
-  height: 40vw;
-  width: 40vw;
-  background-color: black;
-`;
+  margin-bottom: 1vw;
+  height: ${8 * ROWS}vh;
+  width: ${8 * COLUMNS}vh;
+  background-color: #000000;
+  border-radius: 15px;
+  text-align: center;
 
-export const ShuffleButton = styled.button`
+  @media ${device.tablet} { 
+  height: ${7 * ROWS}vw;
+  width: ${7 * COLUMNS}vw;
+  }
+`
+
+export const StartButton = styled(Button) <StartButtonType>`
+  margin: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 15px 25px;
+  font-size: 24px;
+  text-align: center;
+  cursor: pointer;
+  outline: none;
+  color: #000000;
+  background-color: #5852ff;
+  border: none;
+  border-radius: 10px;
+  visibility: ${props => props.gameStarted ? 'hidden' : 'visible'};
+}
+  :hover {background-color: #3e38ff}
+
+  :active {
+    background-color: #3e8e41;
+  }
+`
+
+export const WinnerMessage = styled.h1<WinnerMessageType>`
+  font-size: 5vw;
+  visibility: ${props => props.gameSolved ? 'visible' : 'hidden'};
+
+  @media ${device.tablet} { 
+    font-size: 5vh;
+    }
+  
 `
 
 function Board() {
-  const array = Array.from({ length: TILE_COUNT }, (_, index) => index)
-  array.sort(() => Math.random() - 0.5)
+  const array = Array.from({ length: TILE_COUNT }, (_, index) => index + 1)
 
-  const [color, setColor] = useState("");
-
-  const [axis, setAxis] = useState({ horizontal: false, vertical: false })
   const [boardArray, setBoardArray] = useState(array)
-  const [emptyTileIndex, setEmptyTileIndex] = useState(array.indexOf(0))
+  const [emptyTileIndex, setEmptyTileIndex] = useState(boardArray.indexOf(TILE_COUNT))
+  const [image, setImage] = useState<FileList | null>()
+  const [imageURL, setImageURL] = useState<string | undefined>()
+  const [gameStarted, setGameStarted] = useState(false)
+  const [gameSolved, setGameSolved] = useState(false)
 
-  const handleTileChange = (clickedIndex: number) => {
-    setColor("pink")
-    console.log("x position", (100 / (GRID_DIMENSIONS - 1) * (clickedIndex % GRID_DIMENSIONS)))
-
-    console.log("y position", (100 / (GRID_DIMENSIONS - 1) * Math.floor(clickedIndex / GRID_DIMENSIONS)))
-    //first check if allowed move 
-    //then change board w helper functions (find direction, which tiles should move where (which clickedIndex change), )
-    //find the location of 0 the first time and after that the clicked is the new zero
-    console.log("this is coord for 0", indexToCoordinates(emptyTileIndex))
-    console.log("this is coord for clicked", indexToCoordinates(clickedIndex))
-    console.log(emptyTileIndex, clickedIndex)
-    if (emptyTileIndex === clickedIndex) {
-      return
-
-    }
-    const emptyCoord = indexToCoordinates(emptyTileIndex)
-    const clickedCoord = indexToCoordinates(clickedIndex)
-    console.log("x translation", 40 / GRID_DIMENSIONS * (clickedIndex % GRID_DIMENSIONS + 1))
-
-    console.log("y translation", 40 / GRID_DIMENSIONS * (Math.floor(clickedIndex / GRID_DIMENSIONS) + 1))
-    const allowedMove = isMoveAllowed(clickedCoord, emptyCoord)
-    const axis = moveAxis(clickedCoord, emptyCoord)
-    if (!allowedMove) {
-      return
-    }
-
-    const distance = moveDistance(clickedCoord, emptyCoord, axis)
-    let arr = tileMover(emptyTileIndex, boardArray, distance, axis)
-    setEmptyTileIndex(clickedIndex)
-    setBoardArray(arr)
-
+  const shuffleBoard = () => {
+    const shuffled = shuffleArray(boardArray)
+    setBoardArray(shuffled)
+    setEmptyTileIndex(shuffled.indexOf(TILE_COUNT))
   }
 
-  const shuffleTiles = () => {
-    setBoardArray(boardArray.sort(() => Math.random() - 0.5))
-    setEmptyTileIndex(boardArray.indexOf(0))
+  useEffect(() => {
+    if (!image) return
+    const newImageURL = URL.createObjectURL(image[0])
+    setImageURL(newImageURL)
+  }, [image])
+
+  const handleTileChange = (clickedTileIndex: number) => {
+    if (emptyTileIndex === clickedTileIndex) return
+    const emptyTileCoord = indexToCoordinates(emptyTileIndex)
+    const clickedTileCoord = indexToCoordinates(clickedTileIndex)
+
+    const allowedMove = isMoveAllowed(clickedTileCoord, emptyTileCoord)
+    if (!allowedMove) return
+
+    const axis = moveAxis(clickedTileCoord, emptyTileCoord)
+    const distance = moveDistance(clickedTileCoord, emptyTileCoord, axis)
+
+    const newBoardArray = tileMover(emptyTileIndex, boardArray, distance, axis)
+    setEmptyTileIndex(clickedTileIndex)
+    setBoardArray(newBoardArray)
+    if (isSolved(boardArray)) {
+      setGameSolved(true)
+      setGameStarted(false)
+    }
   }
 
-  const tileRender = (arr: number[]) => {
+  const handleGameStart = () => {
+    setGameStarted(true)
+    setGameSolved(false)
+    shuffleBoard()
+  }
+
+  const tileRender = () => {
     let tileList = []
-    for (let i = 0; i < arr.length; i++) {
+    for (let i = 0; i < boardArray.length; i++) {
       tileList.push(
         <Tile
-          key={i}
-          tileValue={arr[i]}
-          color={color}
+          key={boardArray[i]}
+          tileValue={boardArray[i]}
           index={i}
-          coordinates={indexToCoordinates(arr[i])}
-          correct={i + 1 === arr[i]}
-          onClick={(e) => handleTileChange(i)}>
-          {arr[i]}
-        </Tile>)
+          coordinates={indexToCoordinates(boardArray[i])}
+          correct={i + 1 === boardArray[i]}
+          image={imageURL}
+          gameStarted={gameStarted}
+          onClick={() => handleTileChange(i)}>
+          {boardArray[i]}
+        </Tile>
+      )
     }
     return tileList
   }
 
   return (
-    <div className="board">
+    <div className='board'>
+      <WinnerMessage gameSolved={gameSolved}> You won!!! </WinnerMessage>
       <Grid>
-        {tileRender(boardArray)}
+        {tileRender()}
+        <StartButton color='inherit' variant='contained' style={{ position: 'absolute' }} gameStarted={gameStarted} onClick={() => handleGameStart()}>New game</StartButton>
+        {gameSolved && <ConfettiExplosion
+          colors={['#ffd478', '#ff59c2', '#3f51b5']}
+          duration={3000}
+          force={0.6}
+          particleCount={80}
+          width={1600}
+          particleSize={10}
+        />}
       </Grid>
-      <ShuffleButton onClick={() => shuffleTiles()}> Shuffle </ShuffleButton>
+      <Stack direction='row' alignItems='center'
+        justifyContent='center' spacing={2}>
+        <Button variant='contained' color='inherit' component='label' onClick={() => shuffleBoard()}>
+          Shuffle
+        </Button>
+        <IconButton color='inherit' aria-label='upload picture' component='label'>
+          <input hidden type='file' accept='image/*' onChange={(event) => { setImage(event.target.files) }} />
+          <PhotoCamera />
+        </IconButton>
+      </Stack>
+      <p id='info-txt' >Upload an image to customise your puzzle, note that your image dimensions must be {ROWS}x{COLUMNS} to match the puzzle size</p>
     </div>
-  );
+  )
 }
 
 export default Board;
