@@ -1,6 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+
 .App {
+  font-family: 'Open Sans', sans-serif;
   text-align: center;
   font-size: 4vw;
+  display: flex;
+  align-items: center;
 }
 
 #info-txt{
@@ -9,8 +14,7 @@
 }
 
 body{
-  
-  background-color: #8AAAE5;
+  background-color: #4e70af;
 }
 
 @keyframes blink-animation {
@@ -37,4 +41,8 @@ button, input::file-selector-button {
 button::hover{
   background-color: #4c91af; /* Green */
   color: white;
+}
+
+h1{
+  margin: 2 3 4 5;
 }

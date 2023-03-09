@@ -9,13 +9,13 @@ import { Tile } from './tile';
 //use as test image for nxn puzzle
 import ET from './../image-asset.jpeg'
 
+
 type StartButtonType = {
   gameStarted: boolean
 }
 
 export const Grid = styled.div`
   position: relative;
-  margin-top: 10%;
   margin-left: auto;
   margin-right: auto;
   height: ${10 * ROWS}vh;
@@ -56,17 +56,26 @@ export const StartButton = styled.button<StartButtonType>`
 export const ButtonGroup = styled.div`
   display: flex;
   justify-content: center;
-  padding: 40px;
+  margin: 1vh 10vh;
+`
+export const WinnerMessage = styled.h1`
+
+  font-size: 5vw;
+
+  @media ${device.tablet} { 
+    font-size: 5vh;
+    }
+  
 `
 
 function Board() {
-  const array = Array.from({ length: TILE_COUNT }, (_, index) => index + 1).sort(() => Math.random() - 0.5)
+  const array = Array.from({ length: TILE_COUNT }, (_, index) => index + 1)
 
   const [boardArray, setBoardArray] = useState(array)
-  const [emptyTileIndex, setEmptyTileIndex] = useState(array.indexOf(TILE_COUNT))
+  const [emptyTileIndex, setEmptyTileIndex] = useState(boardArray.indexOf(TILE_COUNT))
   const [image, setImage] = useState<FileList | null>()
   const [imageURL, setImageURL] = useState<string | undefined>()
-  const [gameStarted, setGameStarted] = useState(true)
+  const [gameStarted, setGameStarted] = useState(false)
   const [gameSolved, setGameSolved] = useState(false)
 
   const shuffleBoard = () => {
@@ -129,9 +138,10 @@ function Board() {
 
   return (
     <div className='board'>
+      <WinnerMessage> You won!!! </WinnerMessage>
       <Grid>
         {tileRender()}
-        <StartButton gameStarted={gameStarted} onClick={() => handleGameStart()}>Start game</StartButton>
+        <StartButton gameStarted={gameStarted} onClick={() => handleGameStart()}>New game</StartButton>
         {gameSolved && <ConfettiExplosion
           colors={['#ffd478', '#ff59c2', '#3f51b5']}
           duration={3000}

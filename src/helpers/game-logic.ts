@@ -59,17 +59,18 @@ export function tileMover(emptyTileIndex: number, arr: number[], distance: numbe
     }
     return arr
 }
-
 export function isSolvable(boardArray: number[]): boolean {
     let count = 0
     for (let i = 0; i < (ROWS * COLUMNS - 1); i++) {
         for (let j = i + 1; j < ROWS * COLUMNS; j++) {
-            if ((boardArray[j] && boardArray[i] && boardArray[i]) > boardArray[j]) {
+            if (boardArray[j] && boardArray[i] &&( boardArray[i] > boardArray[j])) {
                 count += 1
             }
         }
+        console.log(boardArray)
     }
     console.log('this is count', count)
+    console.log(count % 2 == 0)
     return count % 2 == 0
 }
 
