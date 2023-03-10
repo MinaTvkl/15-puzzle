@@ -7,7 +7,7 @@ import IconButton from '@mui/material/IconButton';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import Stack from '@mui/material/Stack';
 import { device } from '../device';
-import { indexToCoordinates, isMoveAllowed, moveAxis, moveDistance, tileMover, shuffleArray, isSolvable, isSolved } from '../helpers/game-logic';
+import { indexToCoordinates, isMoveAllowed, moveAxis, moveDistance, tileMover, shuffleArray, isSolved } from '../helpers/game-logic';
 import { TILE_COUNT, ROWS, COLUMNS } from '../constants';
 import { Tile } from './tile';
 //use as test image for nxn puzzle
